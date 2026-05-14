@@ -34,7 +34,7 @@ See [`task2_ai_assisted_pipeline/README.md`](task2_ai_assisted_pipeline/README.m
 ## Repository Structure
 
 ```
-Gold-Layer-Data-Model/
+jfrog-data-engineering-home-assignment/
 ├── README.md                              # This file
 ├── task1_gold_layer_data_model/
 │   ├── README.md
