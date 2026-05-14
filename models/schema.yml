@@ -1,0 +1,202 @@
+version: 2
+
+models:
+
+  # ─── FACT TABLES ─────────────────────────────────────────────────────────────
+
+  - name: gold_fact_artifact_usage_daily
+    description: >
+      Daily artifact-level consumption and production activity broken down by actor type.
+      Grain: one row per (event_date, repository_key, artifact_path, checksum_sha256, actor_type).
+      Source: raw Snowplow events joined with Airbyte repository and artifact metadata.
+    config:
+      materialized: incremental
+      unique_key:
+        - event_date
+        - repository_key
+        - artifact_path
+        - checksum_sha256
+        - actor_type
+      dist: repository_key
+      sort:
+        - event_date
+        - repository_key
+    columns:
+      - name: event_date
+        description: Calendar date of the activity (partition column).
+        tests:
+          - not_null
+      - name: repository_key
+        description: Artifactory repository identifier.
+        tests:
+          - not_null
+      - name: artifact_path
+        description: Full path within the repository.
+        tests:
+          - not_null
+      - name: checksum_sha256
+        description: SHA-256 content hash — immutable natural key component.
+        tests:
+          - not_null
+      - name: actor_type
+        description: Actor classification.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['human', 'service_account', 'ci_bot', 'unknown']
+      - name: download_count
+        description: Count of download events on this date.
+        tests:
+          - not_null
+      - name: upload_count
+        description: Count of upload/deploy events on this date.
+        tests:
+          - not_null
+      - name: unique_human_users
+        description: Distinct human user IDs who downloaded this artifact on this date.
+      - name: unique_service_accounts
+        description: Distinct service account IDs who downloaded this artifact on this date.
+      - name: unique_ci_bots
+        description: Distinct CI bot IDs who downloaded this artifact on this date.
+      - name: total_bytes_downloaded
+        description: >
+          Total bytes served. Computed as SUM(downloaded_bytes) where downloaded_bytes
+          equals artifact_size_bytes per download event row (0 when Airbyte has no size record).
+          Not a simple multiplication — each event row contributes its own size value.
+      - name: total_bytes_uploaded
+        description: >
+          Total bytes ingested. Computed as SUM(uploaded_bytes) where uploaded_bytes
+          equals artifact_size_bytes per upload event row (0 when Airbyte has no size record).
+      - name: last_downloaded_at
+        description: Latest download timestamp on this date.
+      - name: last_uploaded_at
+        description: Latest upload timestamp on this date.
+      - name: repository_name
+        description: Human-readable repository name (denormalized from gold_dim_repository).
+      - name: repository_mode
+        description: "Repository mode: local, remote, or virtual."
+      - name: package_type
+        description: "Package type: docker, npm, maven, pypi, helm, etc."
+      - name: package_name
+        description: Logical package name (e.g. my-service).
+      - name: package_version
+        description: Package version string (e.g. 1.0.3).
+      - name: artifact_name
+        description: File name component of the artifact path.
+      - name: owning_team
+        description: Team that owns the repository (denormalized).
+      - name: pipeline_name
+        description: CI pipeline name if actor is a bot or service account; NULL for humans.
+
+  - name: gold_fact_repository_traffic_daily
+    description: >
+      Daily repository-level traffic and storage snapshot.
+      Grain: one row per (event_date, repository_key).
+      Source: traffic metrics aggregated from gold_fact_artifact_usage_daily;
+      storage snapshot (storage_bytes_eod, artifact_count_eod) from raw.airbyte_artifacts directly.
+    config:
+      materialized: incremental
+      unique_key:
+        - event_date
+        - repository_key
+      dist: repository_key
+      sort:
+        - event_date
+    columns:
+      - name: event_date
+        tests: [not_null]
+      - name: repository_key
+        tests: [not_null]
+      - name: download_count
+        tests: [not_null]
+      - name: upload_count
+        tests: [not_null]
+
+  - name: gold_fact_package_adoption_daily
+    description: >
+      Daily package-level adoption signal.
+      Grain: one row per (event_date, package_name, repository_key).
+      Source: aggregated from gold_fact_artifact_usage_daily.
+    config:
+      materialized: incremental
+      unique_key:
+        - event_date
+        - package_name
+        - repository_key
+      dist: repository_key
+      sort:
+        - event_date
+    columns:
+      - name: event_date
+        tests: [not_null]
+      - name: package_name
+        tests: [not_null]
+      - name: repository_key
+        tests: [not_null]
+
+  # ─── DIMENSION TABLES ────────────────────────────────────────────────────────
+
+  - name: gold_dim_repository
+    description: >
+      Repository master data. SCD1 (current state). SCD2 strategy documented
+      in model_definitions.md for future implementation.
+      Grain: one row per repository_key.
+      Source: raw.airbyte_repositories.
+    config:
+      materialized: table
+      dist: all
+    columns:
+      - name: repository_key
+        description: Natural key from Artifactory.
+        tests:
+          - not_null
+          - unique
+      - name: package_type
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['docker', 'npm', 'maven', 'pypi', 'helm', 'gradle',
+                       'generic', 'nuget', 'rpm', 'debian', 'go', 'conan']
+      - name: repository_mode
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['local', 'remote', 'virtual']
+
+  - name: gold_dim_artifact
+    description: >
+      Artifact master data. Artifacts are immutable (content-addressed by checksum).
+      Grain: one row per (repository_key, artifact_path, checksum_sha256).
+      Source: raw.airbyte_artifacts.
+    config:
+      materialized: table
+      dist: all
+    columns:
+      - name: artifact_surrogate_key
+        description: MD5 surrogate of (repository_key + artifact_path + checksum_sha256).
+        tests:
+          - not_null
+          - unique
+      - name: repository_key
+        tests: [not_null]
+      - name: checksum_sha256
+        tests: [not_null]
+
+  - name: gold_dim_user_identity
+    description: >
+      Unified actor identity dimension. SCD1 (current state).
+      Grain: one row per actor_id.
+      Source: raw.snowplow_events (actor enumeration) + raw.fullstory_events (human detection).
+    config:
+      materialized: table
+      dist: all
+    columns:
+      - name: actor_id
+        tests:
+          - not_null
+          - unique
+      - name: actor_type
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['human', 'service_account', 'ci_bot', 'unknown']

@@ -1,0 +1,111 @@
+erDiagram
+
+    %% ─── FACT TABLES ───────────────────────────────────────────────────────────
+
+    gold_fact_artifact_usage_daily {
+        date        event_date          PK
+        varchar     repository_key      PK
+        varchar     artifact_path       PK
+        varchar     checksum_sha256     PK
+        varchar     actor_type          PK
+        bigint      download_count
+        bigint      upload_count
+        bigint      unique_human_users
+        bigint      unique_service_accounts
+        bigint      unique_ci_bots
+        bigint      total_bytes_downloaded
+        bigint      total_bytes_uploaded
+        timestamp   last_downloaded_at
+        timestamp   last_uploaded_at
+        varchar     repository_name
+        varchar     repository_mode
+        varchar     package_type
+        varchar     package_name
+        varchar     package_version
+        varchar     artifact_name
+        varchar     owning_team
+        varchar     pipeline_name
+    }
+
+    gold_fact_repository_traffic_daily {
+        date        event_date              PK
+        varchar     repository_key          PK
+        bigint      download_count
+        bigint      upload_count
+        bigint      unique_artifacts_downloaded
+        bigint      unique_artifacts_uploaded
+        bigint      unique_actors
+        bigint      total_downloaded_bytes
+        bigint      total_uploaded_bytes
+        bigint      storage_bytes_eod
+        bigint      artifact_count_eod
+        varchar     repository_name
+        varchar     package_type
+        varchar     repository_mode
+        varchar     owning_team
+    }
+
+    gold_fact_package_adoption_daily {
+        date        event_date              PK
+        varchar     package_name            PK
+        varchar     repository_key          PK
+        bigint      download_count
+        bigint      unique_downloaders
+        bigint      upload_count
+        integer     active_version_count
+        varchar     latest_version_seen
+        date        first_seen_date
+        timestamp   last_download_at
+        varchar     package_type
+        varchar     repository_name
+    }
+
+    %% ─── DIMENSION TABLES ──────────────────────────────────────────────────────
+
+    gold_dim_repository {
+        varchar     repository_key          PK
+        varchar     repository_name
+        varchar     package_type
+        varchar     repository_mode
+        varchar     owning_team
+        timestamp   created_at
+        boolean     is_active
+        %% SCD2 columns below are not implemented in this submission
+        %% scd_status, scd_valid_from, scd_valid_to would be added for historical attribution
+    }
+
+    gold_dim_artifact {
+        varchar     artifact_surrogate_key  PK
+        varchar     repository_key
+        varchar     artifact_path
+        varchar     artifact_name
+        varchar     package_name
+        varchar     package_version
+        varchar     checksum_sha256
+        bigint      size_bytes
+        timestamp   first_uploaded_at
+        timestamp   last_downloaded_at
+    }
+
+    gold_dim_user_identity {
+        varchar     actor_id                PK
+        varchar     actor_name
+        varchar     actor_type
+        varchar     email
+        varchar     team_name
+        boolean     is_service_account
+        boolean     is_ci_bot
+        timestamp   first_seen_at
+        timestamp   last_seen_at
+        timestamp   last_ui_seen_at
+        %% SCD2 columns below are not implemented in this submission
+        %% scd_status, scd_valid_from, scd_valid_to would be added for historical team attribution
+    }
+
+    %% ─── RELATIONSHIPS ──────────────────────────────────────────────────────────
+
+    gold_dim_repository ||--o{ gold_fact_artifact_usage_daily        : "repository_key"
+    gold_dim_repository ||--o{ gold_fact_repository_traffic_daily    : "repository_key"
+    gold_dim_repository ||--o{ gold_fact_package_adoption_daily      : "repository_key"
+    gold_dim_artifact   ||--o{ gold_fact_artifact_usage_daily        : "repository_key + artifact_path + checksum"
+    gold_dim_user_identity ||--o{ gold_fact_artifact_usage_daily     : "conceptual — actor_type denormalized into fact"
