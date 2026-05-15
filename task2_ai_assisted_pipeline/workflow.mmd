@@ -1,0 +1,49 @@
+flowchart TD
+    A["Analyst Request\nexamples/analyst_request.md"] --> B
+
+    subgraph CL ["Clarification Agent"]
+        B{"Request\nclear?"}
+        B -->|No| C["Generate clarifying\nquestions"]
+        C --> D["Analyst provides\nclarification"]
+        D --> B
+    end
+
+    B -->|Yes| E
+
+    subgraph CTX ["Context Loader"]
+        E["Load context/ files\nSchema catalog · DBT conventions\nRedshift rules · Modeling rules"]
+    end
+
+    E --> F
+
+    subgraph MA ["Modeling Agent"]
+        F["Build modeling prompt\nInject full context + request"]
+        F --> G{"ANTHROPIC_API_KEY\navailable?"}
+        G -->|Yes| H["Call Claude API\nclaude-sonnet-4-6"]
+        G -->|No| I["Load pre-authored\nexample output"]
+        H --> J["SQL + YAML draft"]
+        I --> J
+    end
+
+    J --> K
+
+    subgraph RA ["Review Agent — Deterministic"]
+        K["Parse draft\nExtract tables · columns · grain"]
+        K --> L["Run 7 validation checks\nvs schema catalog + conventions"]
+        L --> M{"Any FAIL\nfindings?"}
+    end
+
+    M -->|FAIL| N["review_report.md\nblocking errors listed\nExit code 1"]
+    M -->|PASS / WARN| O["Write generated_output/\nSQL · YAML · review_report.md\nExit code 0"]
+
+    O --> P
+
+    subgraph PA ["PR Agent — Stub"]
+        P["Print: would create branch\ncommit files · open GitHub PR\nassign to analyst for approval"]
+    end
+
+    N -.->|Human fixes\nrequest or output| A
+
+    style N fill:#ffcccc
+    style O fill:#ccffcc
+    style PA fill:#ffffcc

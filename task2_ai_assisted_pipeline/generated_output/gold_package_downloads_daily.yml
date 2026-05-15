@@ -1,0 +1,67 @@
+version: 2
+
+models:
+  - name: gold_package_downloads_daily
+    description: >
+      One row per (event_date, repository_key, package_type, package_name, actor_type).
+      Aggregates Snowplow artifact_download events to daily grain, enriched with repository
+      and artifact metadata from Airbyte. Actor type is classified using Fullstory session
+      presence as the primary human signal, then naming pattern conventions.
+    config:
+      materialized: incremental
+      unique_key:
+        - event_date
+        - repository_key
+        - package_type
+        - package_name
+        - actor_type
+      dist: repository_key
+      sort:
+        - event_date
+        - repository_key
+    columns:
+      - name: event_date
+        description: Calendar date of download events (DATE, UTC).
+        tests:
+          - not_null
+      - name: repository_key
+        description: Artifactory repository key. Resolved local repo when download is via virtual repo.
+        tests:
+          - not_null
+      - name: package_type
+        description: Package format type, denormalized from raw.airbyte_repositories.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['docker', 'npm', 'maven', 'pypi', 'helm', 'gradle', 'generic', 'nuget', 'rpm', 'debian', 'go', 'conan', 'unknown']
+      - name: package_name
+        description: Package name extracted from unstruct_event payload. Defaults to 'unknown'.
+        tests:
+          - not_null
+      - name: actor_type
+        description: >
+          Actor classification. 'human' when Fullstory session found for user_id;
+          'ci_bot' for bot/pipeline naming patterns; 'service_account' for svc- prefix;
+          'unknown' otherwise.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['human', 'ci_bot', 'service_account', 'unknown']
+      - name: repository_name
+        description: Human-readable repository name from raw.airbyte_repositories.
+      - name: repository_mode
+        description: Repository mode (local, remote, virtual) from raw.airbyte_repositories.
+      - name: owning_team
+        description: Team owning the repository. NULL if unassigned.
+      - name: download_count
+        description: Count of artifact_download events after event_id deduplication.
+      - name: unique_downloaders
+        description: Count of distinct user_id values at this grain.
+      - name: total_downloaded_bytes
+        description: >
+          Sum of artifact_size_bytes across download events. Defaults to 0 per event
+          when Airbyte has no size record (COALESCE(size_bytes, 0)).
+      - name: first_downloaded_at
+        description: Earliest collector_tstamp for this grain (TIMESTAMP).
+      - name: last_downloaded_at
+        description: Latest collector_tstamp for this grain (TIMESTAMP).

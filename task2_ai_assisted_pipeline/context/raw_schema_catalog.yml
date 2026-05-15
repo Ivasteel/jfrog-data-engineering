@@ -1,0 +1,153 @@
+# Raw Schema Catalog
+# Ground truth for the modeling agent and review agent.
+# Only tables and columns listed here may be referenced in generated models.
+# All schemas are hypothetical — inferred from assignment entity descriptions.
+
+tables:
+
+  - name: raw.snowplow_events
+    description: >
+      One row per artifact interaction (download or upload) fired by the Snowplow tracker
+      on Artifactory REST API, CLI, and UI actions. Primary event source for all artifact
+      activity fact models.
+    columns:
+      - name: event_id
+        type: VARCHAR
+        nullable: false
+        notes: Deduplicated on this. Snowplow collector retries can produce duplicate event_ids.
+      - name: collector_tstamp
+        type: TIMESTAMP
+        nullable: false
+        notes: Authoritative event timestamp. Cast to DATE for daily grain.
+      - name: event_name
+        type: VARCHAR
+        nullable: false
+        notes: "Values used: 'artifact_download', 'artifact_deploy', 'artifact_publish'"
+      - name: app_id
+        type: VARCHAR
+        nullable: false
+        notes: "Filter on app_id = 'artifactory' to exclude unrelated Snowplow events."
+      - name: user_id
+        type: VARCHAR
+        nullable: true
+        notes: Human user or service account name. NULL for anonymous requests.
+      - name: contexts
+        type: SUPER
+        nullable: true
+        notes: >
+          JSON: session, device, identity context.
+          Access with JSON_EXTRACT_PATH_TEXT(contexts, 'ci_pipeline_name').
+      - name: unstruct_event
+        type: SUPER
+        nullable: true
+        notes: >
+          JSON payload containing artifact-level fields.
+          Always access with JSON_EXTRACT_PATH_TEXT — never dot-notation.
+          Known nested fields:
+            repository_key (VARCHAR)
+            resolved_repository_key (VARCHAR) — set when download is via virtual repo
+            artifact_path (VARCHAR)
+            checksum_sha256 (VARCHAR)
+            package_name (VARCHAR)
+            package_version (VARCHAR)
+
+  - name: raw.fullstory_events
+    description: >
+      One row per UI browser event from Fullstory. Tracks human user sessions only —
+      CI bots and service accounts do not produce Fullstory events.
+      Used exclusively for actor classification (human vs. bot detection).
+    columns:
+      - name: session_id
+        type: VARCHAR
+        nullable: false
+      - name: user_id
+        type: VARCHAR
+        nullable: false
+        notes: Matches user_id in raw.snowplow_events for human actors.
+      - name: event_type
+        type: VARCHAR
+        nullable: false
+        notes: "Values: 'page_view', 'click', 'search', 'navigate'"
+      - name: page_url
+        type: VARCHAR
+        nullable: true
+      - name: element_tag
+        type: VARCHAR
+        nullable: true
+      - name: occurred_at
+        type: TIMESTAMP
+        nullable: false
+
+  - name: raw.airbyte_repositories
+    description: >
+      Repository configuration snapshot synced daily by Airbyte from the Artifactory REST API.
+      One row per repository. Updated once per day after midnight UTC.
+    columns:
+      - name: repository_key
+        type: VARCHAR
+        nullable: false
+        notes: Natural key from Artifactory. Use as join key.
+      - name: repository_name
+        type: VARCHAR
+        nullable: false
+      - name: package_type
+        type: VARCHAR
+        nullable: false
+        notes: "Values: 'docker', 'npm', 'maven', 'pypi', 'helm', 'gradle', 'generic', 'nuget', 'rpm', 'debian', 'go', 'conan'"
+      - name: repository_mode
+        type: VARCHAR
+        nullable: false
+        notes: "Values: 'local', 'remote', 'virtual'"
+      - name: owning_team
+        type: VARCHAR
+        nullable: true
+      - name: created_at
+        type: TIMESTAMP
+        nullable: false
+      - name: updated_at
+        type: TIMESTAMP
+        nullable: false
+      - name: is_active
+        type: BOOLEAN
+        nullable: false
+
+  - name: raw.airbyte_artifacts
+    description: >
+      Artifact manifest snapshot synced daily by Airbyte from the Artifactory REST API.
+      One row per artifact version. Join key is (repository_key, artifact_path, checksum_sha256).
+    columns:
+      - name: artifact_id
+        type: VARCHAR
+        nullable: false
+        notes: Airbyte internal surrogate. NOT used as join key in Gold models.
+      - name: repository_key
+        type: VARCHAR
+        nullable: false
+      - name: artifact_path
+        type: VARCHAR
+        nullable: false
+      - name: artifact_name
+        type: VARCHAR
+        nullable: true
+        notes: File name component. If NULL, extract from artifact_path using REVERSE(SPLIT_PART(REVERSE(artifact_path), '/', 1)).
+      - name: package_name
+        type: VARCHAR
+        nullable: true
+      - name: package_version
+        type: VARCHAR
+        nullable: true
+      - name: checksum_sha256
+        type: VARCHAR
+        nullable: true
+        notes: Content hash. Part of the natural join key. Handle NULL with COALESCE or pre-filter.
+      - name: size_bytes
+        type: BIGINT
+        nullable: true
+        notes: Artifact file size. NULL if not yet indexed by Airbyte. Default to 0 with COALESCE.
+      - name: created_at
+        type: TIMESTAMP
+        nullable: true
+      - name: last_modified_at
+        type: TIMESTAMP
+        nullable: true
+        notes: Not mapped to Gold models. Artifacts are immutable after publish.
