@@ -9,7 +9,7 @@ This repository contains the JFrog Data Engineering contractor home assignment, 
 | Task | Folder | Status |
 |---|---|---|
 | Task 1 — Gold Layer Data Model | [`task1_gold_layer_data_model/`](task1_gold_layer_data_model/) | Complete |
-| Task 2 — AI-Assisted Transformation Pipeline | [`task2_ai_assisted_pipeline/`](task2_ai_assisted_pipeline/) | Not started |
+| Task 2 — AI-Assisted Transformation Pipeline | [`task2_ai_assisted_pipeline/`](task2_ai_assisted_pipeline/) | Complete |
 
 ---
 
