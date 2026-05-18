@@ -4,6 +4,36 @@
 
 ---
 
+## Quick Review Guide
+
+| File | What to look for |
+|---|---|
+| [scripts/run_pipeline.py](scripts/run_pipeline.py) | Working offline pipeline — all 9 stages implemented |
+| [context/raw_schema_catalog.yml](context/raw_schema_catalog.yml) | Ground truth schema — injected into the modeling prompt and used by the review agent for validation |
+| [agents/modeling_agent.md](agents/modeling_agent.md) | Modeling agent system prompt and user prompt template showing full context injection |
+| [agents/review_agent.md](agents/review_agent.md) | Deterministic review/grader specification — 7 checks, failure modes, exit codes |
+| [generated_output/gold_package_downloads_daily.sql](generated_output/gold_package_downloads_daily.sql) | Generated SQL — produced by running the pipeline |
+| [generated_output/gold_package_downloads_daily.yml](generated_output/gold_package_downloads_daily.yml) | Generated YAML — schema tests and model metadata |
+| [generated_output/review_report.md](generated_output/review_report.md) | Review report — written by the pipeline on each run |
+| [tests/test_review_agent.py](tests/test_review_agent.py) | 10 unit tests covering valid model, 4 failure modes, naming convention, ambiguity detection |
+| [workflow.mmd](workflow.mmd) | Mermaid pipeline diagram |
+
+---
+
+## Validation Summary
+
+```bash
+python3 task2_ai_assisted_pipeline/scripts/run_pipeline.py
+# Expected: 7 PASS  0 WARNING  0 FAIL — exits 0
+
+python3 -m pytest task2_ai_assisted_pipeline/tests/test_review_agent.py -v
+# Expected: 10 passed
+```
+
+No API key required. The pipeline runs fully offline — the modeling prompt is built but no Claude API call is made.
+
+---
+
 ## Objective
 
 Build a semi-automated pipeline that takes an analyst's natural-language modeling request and produces a DBT Gold model draft (SQL + YAML) ready for review and merge.
