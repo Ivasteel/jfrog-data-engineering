@@ -4,7 +4,7 @@
 
 ---
 
-## Quick Review Guide
+## 🔎 Quick Review Guide
 
 | File | Deliverable |
 |---|---|
@@ -19,7 +19,7 @@
 
 ---
 
-## Validation / Review Notes
+## ✅ Validation / Review Notes
 
 - **This is a design deliverable, not a runnable application or DBT project.** There is no pipeline to execute for Task 1.
 - **The SQL file** ([models/gold_fact_artifact_usage_daily.sql](models/gold_fact_artifact_usage_daily.sql)) is a Redshift/DBT-style stub. It is written to be read and reviewed, not executed in this repository.
@@ -28,7 +28,7 @@
 
 ---
 
-## Overview
+## 📌 Overview
 
 This repository contains the Gold layer data model design for the JFrog Artifactory analytics domain. The model is built entirely from raw Redshift tables (no existing Silver layer) and serves four analytical use cases:
 
@@ -41,7 +41,7 @@ This repository contains the Gold layer data model design for the JFrog Artifact
 
 ---
 
-## Design Principles
+## 🧭 Design Principles
 
 - **Wide and flat over normalized** — analysts query Gold directly in Redshift; unnecessary joins at query time are avoided by denormalizing the most useful dimension attributes into fact tables.
 - **Explicit grain on every model** — each model definition starts with a grain statement.
@@ -50,7 +50,7 @@ This repository contains the Gold layer data model design for the JFrog Artifact
 
 ---
 
-## Repository Structure
+## 📁 Repository Structure
 
 ```
 Gold Layer Data Model/
@@ -67,9 +67,9 @@ Gold Layer Data Model/
 
 ---
 
-## Gold Layer Models
+## 🏗️ Gold Layer Models
 
-### Fact Tables
+### 📊 Fact Tables
 
 | Model | Grain | Primary Use Case |
 |---|---|---|
@@ -77,7 +77,7 @@ Gold Layer Data Model/
 | `gold_fact_repository_traffic_daily` | repository × day | Repository health, storage growth |
 | `gold_fact_package_adoption_daily` | package × repository × day | Package adoption trends |
 
-### Dimension Tables
+### 🧩 Dimension Tables
 
 | Model | Grain | SCD Strategy |
 |---|---|---|
@@ -87,7 +87,7 @@ Gold Layer Data Model/
 
 ---
 
-## Most Important Model
+## ⭐ Most Important Model
 
 **`gold_fact_artifact_usage_daily`** — full SQL stub in [models/gold_fact_artifact_usage_daily.sql](models/gold_fact_artifact_usage_daily.sql).
 
@@ -95,7 +95,7 @@ This model covers the primary analytical question: *which artifacts are most dow
 
 ---
 
-## AI Usage
+## 🤖 AI Usage
 
 This design was developed using an AI-assisted, human-reviewed workflow:
 
@@ -108,7 +108,7 @@ Tool used: **Claude Code** (Anthropic) — running as an AI pair programmer, not
 
 ---
 
-## What I Would Do Next (given more time)
+## 📝 What I Would Do Next (given more time)
 
 - Build full SQL stubs for `gold_fact_repository_traffic_daily` and `gold_fact_package_adoption_daily`.
 - Add SCD2 scaffolding for `gold_dim_repository` and `gold_dim_user_identity`.

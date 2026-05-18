@@ -4,7 +4,7 @@
 
 ---
 
-## Quick Review Guide
+## 🔎 Quick Review Guide
 
 | File | What to look for |
 |---|---|
@@ -20,7 +20,7 @@
 
 ---
 
-## Validation Summary
+## ✅ Validation Summary
 
 ```bash
 python3 task2_ai_assisted_pipeline/scripts/run_pipeline.py
@@ -42,7 +42,7 @@ docker run --rm jfrog-data-engineering-home-assignment
 
 ---
 
-## Objective
+## 🎯 Objective
 
 Build a semi-automated pipeline that takes an analyst's natural-language modeling request and produces a DBT Gold model draft (SQL + YAML) ready for review and merge.
 
@@ -50,13 +50,13 @@ The goal is to give analysts a tool they can use without a data engineer in the 
 
 ---
 
-## Workflow Diagram
+## 🧭 Workflow Diagram
 
 See [workflow.mmd](workflow.mmd) for the Mermaid source.
 
 ---
 
-## Pipeline Stages
+## ⚙️ Pipeline Stages
 
 | Stage | Agent / Component | Status |
 |---|---|---|
@@ -70,7 +70,7 @@ See [workflow.mmd](workflow.mmd) for the Mermaid source.
 
 ---
 
-## Repository Structure
+## 📁 Repository Structure
 
 ```
 task2_ai_assisted_pipeline/
@@ -108,7 +108,7 @@ task2_ai_assisted_pipeline/
 
 ---
 
-## Key Design Decisions
+## 🧠 Key Design Decisions
 
 - **Context injection is the hardest part** — the modeling agent is only as good as the schema catalog and conventions it receives. See `context/` files.
 - **Review agent is deterministic** — the review/grader runs rule-based checks, not another LLM call. This prevents cascading hallucinations.
@@ -118,7 +118,7 @@ task2_ai_assisted_pipeline/
 
 ---
 
-## Running the Pipeline
+## 🚀 Running the Pipeline
 
 **No external API key or dependencies required.** The pipeline runs fully offline.
 
@@ -158,13 +158,13 @@ python3 -m pytest task2_ai_assisted_pipeline/tests/test_review_agent.py -v
 
 ---
 
-## Limitations & Next Steps
+## 📝 Limitations & Next Steps
 
 See [docs/limitations_and_next_steps.md](docs/limitations_and_next_steps.md).
 
 ---
 
-## AI Usage
+## 🤖 AI Usage
 
 This pipeline was designed with Claude Code (claude-sonnet-4-6) as an AI pair programmer.
 See [../task1_gold_layer_data_model/ai_workflow/](../task1_gold_layer_data_model/ai_workflow/) for the documented AI workflow methodology applied across both tasks.
