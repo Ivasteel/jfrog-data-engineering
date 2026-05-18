@@ -32,6 +32,14 @@ python3 -m pytest task2_ai_assisted_pipeline/tests/test_review_agent.py -v
 
 No API key required. The pipeline runs fully offline — the modeling prompt is built but no Claude API call is made.
 
+**Optional — Docker** (if a local Python environment is not available):
+
+```bash
+# From the repository root:
+docker build -t jfrog-data-engineering-home-assignment .
+docker run --rm jfrog-data-engineering-home-assignment
+```
+
 ---
 
 ## Objective

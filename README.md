@@ -51,6 +51,13 @@ python3 -m pytest task2_ai_assisted_pipeline/tests/test_review_agent.py -v
 
 Expected output: `7 PASS  0 WARNING  0 FAIL` and `10 passed`.
 
+**Optional — Docker** (if a local Python environment is not available):
+
+```bash
+docker build -t jfrog-data-engineering-home-assignment .
+docker run --rm jfrog-data-engineering-home-assignment
+```
+
 ---
 
 ## Task 1 — Gold Layer Data Model
