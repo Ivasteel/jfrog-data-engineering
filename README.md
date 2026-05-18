@@ -4,7 +4,7 @@ This repository contains the JFrog Data Engineering contractor home assignment, 
 
 ---
 
-## Tasks
+## 📌 Tasks
 
 | Task | Folder | Status |
 |---|---|---|
@@ -13,7 +13,7 @@ This repository contains the JFrog Data Engineering contractor home assignment, 
 
 ---
 
-## Quick Review Guide
+## 🔎 Quick Review Guide
 
 **Task 1 — start here:**
 
@@ -37,7 +37,7 @@ This repository contains the JFrog Data Engineering contractor home assignment, 
 
 ---
 
-## Quick Start — Task 2
+## 🚀 Quick Start — Task 2
 
 No API key or external dependencies required. The pipeline runs fully offline.
 
@@ -60,7 +60,7 @@ docker run --rm jfrog-data-engineering-home-assignment
 
 ---
 
-## Task 1 — Gold Layer Data Model
+## 🧩 Task 1 — Gold Layer Data Model
 
 Design an analytics-ready Gold layer data model for the JFrog Artifactory domain, sourced entirely from raw Redshift tables.
 
@@ -70,7 +70,7 @@ See [`task1_gold_layer_data_model/README.md`](task1_gold_layer_data_model/README
 
 ---
 
-## Task 2 — AI-Assisted Transformation Pipeline
+## 🤖 Task 2 — AI-Assisted Transformation Pipeline
 
 A semi-automated pipeline that takes an analyst's natural-language request and produces a DBT Gold model draft (SQL + YAML) ready for human review.
 
@@ -78,7 +78,7 @@ See [`task2_ai_assisted_pipeline/README.md`](task2_ai_assisted_pipeline/README.m
 
 ---
 
-## Notes
+## 📝 Notes
 
 - **No API key required.** Task 2 runs in deterministic offline mode; the pipeline builds the full modeling prompt but does not call the Claude API.
 - **Intentional stubs:** GitHub PR creation, live Claude API call, MCP integrations (GitHub, Slack, Redshift), and hooks are documented as future/stubbed integrations. The review agent and all offline pipeline stages are fully implemented.
@@ -86,7 +86,7 @@ See [`task2_ai_assisted_pipeline/README.md`](task2_ai_assisted_pipeline/README.m
 
 ---
 
-## Repository Structure
+## 📁 Repository Structure
 
 ```
 jfrog-data-engineering-home-assignment/
