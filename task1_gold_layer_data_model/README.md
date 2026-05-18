@@ -4,6 +4,30 @@
 
 ---
 
+## Quick Review Guide
+
+| File | Deliverable |
+|---|---|
+| [README.md](README.md) | Overview, model summary, design principles |
+| [erd.mmd](erd.mmd) | Model diagram — 3 fact + 3 dimension tables, all relationships |
+| [models/model_definitions.md](models/model_definitions.md) | Grain, key columns, materialization, and SCD strategy for all 6 models |
+| [models/gold_fact_artifact_usage_daily.sql](models/gold_fact_artifact_usage_daily.sql) | Full SQL stub — primary deliverable; all 6 CTEs, actor classification, Redshift patterns |
+| [models/schema.yml](models/schema.yml) | DBT-style model descriptions, unique_key, and test definitions |
+| [assumptions.md](assumptions.md) | Documented hypothetical schema and all design assumptions |
+| [docs/raw_to_gold_mapping.md](docs/raw_to_gold_mapping.md) | Snowplow / Fullstory / Airbyte field-level mapping to Gold columns |
+| [ai_workflow/](ai_workflow/) | Controlled AI-assisted workflow — prompts, review log, checklist |
+
+---
+
+## Validation / Review Notes
+
+- **This is a design deliverable, not a runnable application or DBT project.** There is no pipeline to execute for Task 1.
+- **The SQL file** ([models/gold_fact_artifact_usage_daily.sql](models/gold_fact_artifact_usage_daily.sql)) is a Redshift/DBT-style stub. It is written to be read and reviewed, not executed in this repository.
+- **schema.yml** documents expected DBT tests (not_null, unique, accepted_values) and model metadata. It reflects what a production DBT project would define, not a running test suite.
+- **Key review points:** grain correctness, source-to-Gold traceability, Snowplow/Fullstory event mapping, SCD strategy, and Gold-layer usability for analysts querying Redshift directly.
+
+---
+
 ## Overview
 
 This repository contains the Gold layer data model design for the JFrog Artifactory analytics domain. The model is built entirely from raw Redshift tables (no existing Silver layer) and serves four analytical use cases:
