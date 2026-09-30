@@ -1,6 +1,6 @@
-# JFrog Data Engineering — Home Assignment
+# JFrog Data Engineering
 
-This repository contains the JFrog Data Engineering contractor home assignment, structured by task for clarity.
+This repository contains the JFrog Data Engineering structured by task for clarity.
 
 ---
 
